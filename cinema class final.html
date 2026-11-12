@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎬 Movies Lesson — Creative English</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #0a0a1a;
+    color: #fff;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(circle at 20% 20%, rgba(255, 0, 128, 0.15), transparent 40%),
+      radial-gradient(circle at 80% 70%, rgba(0, 200, 255, 0.15), transparent 40%),
+      radial-gradient(circle at 50% 100%, rgba(255, 200, 0, 0.1), transparent 50%);
+    z-index: -1;
+  }
+
+  .hero { text-align: center; padding: 50px 15px 30px; }
+  .hero h1 {
+    font-size: clamp(1.8rem, 8vw, 4rem);
+    font-weight: 900;
+    background: linear-gradient(90deg, #ff0080, #ff8c00, #ffd700, #00d4ff, #ff0080);
+    background-size: 300% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: shine 6s linear infinite;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+  }
+  @keyframes shine { to { background-position: 300% 0; } }
+  .hero .subtitle { font-size: clamp(0.95rem, 4vw, 1.4rem); color: #c0c0d0; margin-bottom: 10px; }
+  .hero .students {
+    display: inline-block; margin-top: 12px; padding: 10px 20px;
+    background: rgba(255,255,255,0.05); border: 2px solid rgba(255,215,0,0.4);
+    border-radius: 50px; font-size: clamp(0.85rem, 3.5vw, 1.1rem); color: #ffd700;
+    backdrop-filter: blur(10px); line-height: 1.5;
+  }
+  .film-strip { display: flex; justify-content: center; gap: 6px; margin-top: 20px; font-size: clamp(1.3rem, 5vw, 2rem); opacity: 0.7; flex-wrap: wrap; }
+
+  section { max-width: 1200px; margin: 30px auto; padding: 20px 15px; }
+  .section-title {
+    font-size: clamp(1.3rem, 6vw, 2.2rem);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .section-title .num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 40px; height: 40px;
+    background: linear-gradient(135deg, #ff0080, #ff8c00);
+    border-radius: 50%; font-weight: 900; font-size: 1.1rem;
+    box-shadow: 0 0 20px rgba(255,0,128,0.5);
+    flex-shrink: 0;
+  }
+  .section-desc { color: #a0a0b0; margin-bottom: 20px; font-size: clamp(0.9rem, 3.5vw, 1.05rem); }
+
+  /* WARM-UP */
+  .vocab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+  .vocab-card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 16px;
+    padding: 18px 12px; text-align: center; cursor: pointer; transition: all 0.3s;
+  }
+  .vocab-card:hover { transform: translateY(-5px); border-color: #ffd700; box-shadow: 0 10px 30px rgba(255,215,0,0.2); }
+  .vocab-card .emoji { font-size: 2rem; display: block; margin-bottom: 8px; }
+  .vocab-card .word { font-size: 1rem; font-weight: 700; color: #fff; }
+  .vocab-card .hint { display: none; margin-top: 10px; font-size: 0.8rem; color: #ffd700; font-style: italic; line-height: 1.4; }
+  .vocab-card.active .hint { display: block; }
+
+  /* EMOJI GUESS GAME */
+  .emoji-game-intro {
+    background: linear-gradient(135deg, rgba(255,215,0,0.08), rgba(255,0,128,0.08));
+    border-left: 4px solid #ffd700;
+    padding: 14px 18px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    font-size: 0.95rem;
+    color: #e0e0e0;
+    line-height: 1.6;
+  }
+  .emoji-game-intro strong { color: #ffd700; }
+
+  .emoji-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+  .emoji-card {
+    perspective: 1000px;
+    height: 360px;
+    cursor: pointer;
+  }
+  .emoji-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.8s;
+    transform-style: preserve-3d;
+  }
+  .emoji-card.flipped .emoji-card-inner { transform: rotateY(180deg); }
+  .emoji-card-front, .emoji-card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    border-radius: 20px;
+    padding: 22px 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  .emoji-card-front {
+    background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+    border: 2px solid rgba(255,255,255,0.15);
+  }
+  .emoji-card-back {
+    background: linear-gradient(135deg, #ff0080, #ff8c00);
+    transform: rotateY(180deg);
+    box-shadow: 0 20px 60px rgba(255,0,128,0.4);
+  }
+  .emoji-card-front:hover { border-color: #ffd700; box-shadow: 0 10px 40px rgba(255,215,0,0.2); }
+  .student-label {
+    position: absolute; top: 12px; left: 12px;
+    padding: 5px 12px; border-radius: 20px;
+    font-size: 0.8rem; font-weight: 700; color: #fff;
+  }
+  .student-label.khava { background: linear-gradient(135deg, #ff0080, #ff8c00); }
+  .student-label.askhab { background: linear-gradient(135deg, #00d4ff, #0080ff); }
+  .student-label.amina { background: linear-gradient(135deg, #00c853, #00e676); color: #333; }
+  .secret-badge {
+    position: absolute; top: 12px; right: 12px;
+    padding: 5px 10px;
+    background: rgba(255,0,128,0.3); border: 1px solid rgba(255,0,128,0.5);
+    border-radius: 20px; font-size: 0.7rem; font-weight: 700;
+    color: #ff80bf; letter-spacing: 1px;
+  }
+  .emoji-display { font-size: clamp(2.2rem, 9vw, 3.5rem); margin: 18px 0; letter-spacing: 4px; line-height: 1.3; }
+  .tap-hint { color: #a0a0b0; font-size: 0.85rem; margin-top: 12px; }
+  .tap-hint .arrow { display: inline-block; animation: bounce 1s infinite; }
+  @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+  .revealed-title { font-size: clamp(1.4rem, 6vw, 2rem); font-weight: 900; color: #fff; margin-bottom: 10px; text-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+  .revealed-genre { font-size: clamp(0.9rem, 3.5vw, 1.1rem); color: rgba(255,255,255,0.9); font-style: italic; }
+  .revealed-emoji-big { font-size: clamp(2.8rem, 12vw, 4rem); margin-bottom: 12px; }
+
+  .shuffle-btn {
+    display: block; margin: 0 auto;
+    background: linear-gradient(135deg, #ffd700, #ff8c00);
+    color: #333; border: none; padding: 12px 26px; border-radius: 30px;
+    font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s;
+  }
+  .shuffle-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(255,215,0,0.4); }
+
+  /* GENRE SORTING */
+  .sort-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 800px) { .sort-container { grid-template-columns: 1fr; } }
+  .films-panel, .genres-panel { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 18px; }
+  .panel-title { font-size: 1.1rem; margin-bottom: 14px; color: #ffd700; display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .score-badge { background: linear-gradient(135deg, #00d4ff, #0080ff); padding: 5px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; }
+  .film-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+  .film-card {
+    background: linear-gradient(135deg, #2a1a4a, #1a0a3a);
+    border: 2px solid rgba(255,255,255,0.1); border-radius: 14px;
+    padding: 14px 8px; text-align: center; cursor: grab; transition: all 0.25s; user-select: none;
+  }
+  .film-card:hover { transform: scale(1.05); border-color: #ff0080; box-shadow: 0 5px 20px rgba(255,0,128,0.3); }
+  .film-card.selected { border-color: #ffd700; box-shadow: 0 0 20px rgba(255,215,0,0.5); transform: scale(1.05); }
+  .film-card.placed { opacity: 0.3; pointer-events: none; transform: scale(0.95); }
+  .film-card .film-emoji { font-size: 1.8rem; display: block; margin-bottom: 6px; }
+  .film-card .film-name { font-size: 0.8rem; font-weight: 600; line-height: 1.2; }
+  .genres-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+  .genre-box {
+    background: rgba(255,255,255,0.05); border: 2px dashed rgba(255,255,255,0.2);
+    border-radius: 14px; padding: 14px 8px; text-align: center; min-height: 95px;
+    transition: all 0.25s; cursor: pointer;
+  }
+  .genre-box.drag-over { border-color: #00d4ff; background: rgba(0,212,255,0.1); transform: scale(1.03); }
+  .genre-box .genre-name { font-weight: 700; font-size: 0.95rem; margin-bottom: 8px; color: #00d4ff; }
+  .genre-box .genre-count { font-size: 0.75rem; color: #a0a0b0; }
+  .genre-box .placed-list { margin-top: 8px; font-size: 0.72rem; color: #ffd700; line-height: 1.4; }
+
+  .sort-instructions { background: rgba(255,215,0,0.08); border-left: 4px solid #ffd700; padding: 12px 16px; border-radius: 8px; margin-bottom: 18px; font-size: 0.92rem; color: #e0e0e0; }
+  .useful-phrases { background: rgba(0,212,255,0.08); border-left: 4px solid #00d4ff; padding: 12px 16px; border-radius: 8px; margin-top: 18px; font-size: 0.88rem; }
+  .useful-phrases strong { color: #00d4ff; }
+  .useful-phrases ul { list-style: none; margin-top: 8px; }
+  .useful-phrases li { padding: 3px 0; }
+  .useful-phrases li::before { content: '💬 '; }
+
+  /* GUESS THE FILM */
+  .guess-container { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 25px 20px; }
+  .progress-bar { height: 8px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden; margin-bottom: 18px; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, #ff0080, #ffd700, #00d4ff); width: 0%; transition: width 0.5s; }
+  .question-card {
+    background: linear-gradient(135deg, rgba(255,0,128,0.1), rgba(0,212,255,0.1));
+    border-radius: 16px; padding: 22px 18px; margin-bottom: 18px; min-height: 140px;
+    display: flex; align-items: center; justify-content: center; text-align: center;
+    font-size: clamp(1rem, 4.5vw, 1.15rem); line-height: 1.6;
+  }
+  .question-card .q-number { display: block; color: #ffd700; font-size: 0.85rem; margin-bottom: 10px; font-weight: 700; }
+  .answers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+  .answer-btn {
+    background: rgba(255,255,255,0.06); border: 2px solid rgba(255,255,255,0.15);
+    color: #fff; padding: 12px 8px; border-radius: 12px; cursor: pointer;
+    font-size: 0.85rem; font-weight: 600; transition: all 0.25s;
+  }
+  .answer-btn:hover { background: rgba(255,255,255,0.12); border-color: #00d4ff; transform: translateY(-2px); }
+  .answer-btn.correct { background: linear-gradient(135deg, #00c853, #00e676); border-color: #00c853; animation: pulse 0.5s; }
+  .answer-btn.wrong { background: linear-gradient(135deg, #d50000, #ff1744); border-color: #d50000; animation: shake 0.4s; }
+  @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+  @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+  .feedback { margin-top: 15px; padding: 14px; border-radius: 12px; text-align: center; font-weight: 600; display: none; font-size: 0.95rem; }
+  .feedback.show { display: block; }
+  .feedback.good { background: rgba(0,200,83,0.15); color: #69f0ae; }
+  .feedback.bad { background: rgba(213,0,0,0.15); color: #ff8a80; }
+
+  /* WHICH FILM */
+  .which-film-container { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 25px 20px; }
+  .student-tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+  .student-tab {
+    padding: 9px 18px; border-radius: 30px; border: 2px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.05); cursor: pointer; font-weight: 700;
+    font-size: 0.9rem; transition: all 0.25s; color: #c0c0d0;
+  }
+  .student-tab:hover { border-color: #ff0080; color: #fff; }
+  .student-tab.active {
+    background: linear-gradient(135deg, #ff0080, #ff8c00); color: #fff;
+    border-color: transparent; box-shadow: 0 5px 15px rgba(255,0,128,0.4);
+  }
+  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 5px; }
+  .films-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; margin-bottom: 20px; }
+  .films-table th { text-align: left; padding: 12px 14px; color: #ffd700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; }
+  .films-table td { padding: 12px 14px; background: rgba(255,255,255,0.03); border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle; }
+  .films-table tr td:first-child { border-left: 1px solid rgba(255,255,255,0.05); border-radius: 12px 0 0 12px; }
+  .films-table tr td:last-child { border-right: 1px solid rgba(255,255,255,0.05); border-radius: 0 12px 12px 0; }
+  .films-table tr:hover td { background: rgba(255,255,255,0.06); }
+  .film-row-name { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 0.95rem; }
+  .film-row-name .emoji { font-size: 1.4rem; }
+  .film-row-genre { color: #00d4ff; font-size: 0.82rem; font-style: italic; }
+  .choice-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+  .choice-btn {
+    padding: 7px 13px; border-radius: 20px; border: 2px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.05); color: #fff; cursor: pointer;
+    font-weight: 600; font-size: 0.8rem; transition: all 0.25s;
+  }
+  .choice-btn:hover { transform: translateY(-2px); }
+  .choice-btn.yes:hover, .choice-btn.yes.active { background: linear-gradient(135deg, #00c853, #00e676); border-color: #00c853; box-shadow: 0 5px 15px rgba(0,200,83,0.3); }
+  .choice-btn.no:hover, .choice-btn.no.active { background: linear-gradient(135deg, #d50000, #ff1744); border-color: #d50000; box-shadow: 0 5px 15px rgba(213,0,0,0.3); }
+  .choice-btn.maybe:hover, .choice-btn.maybe.active { background: linear-gradient(135deg, #ff8c00, #ffd700); border-color: #ff8c00; color: #000; box-shadow: 0 5px 15px rgba(255,140,0,0.3); }
+  .phrases-panel {
+    background: linear-gradient(135deg, rgba(255,0,128,0.08), rgba(0,212,255,0.08));
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 18px;
+    margin-top: 12px; display: none; animation: slideDown 0.3s;
+  }
+  .phrases-panel.show { display: block; }
+  @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+  .phrases-panel h4 { color: #ffd700; margin-bottom: 12px; font-size: 0.95rem; }
+  .phrase-group { margin-bottom: 12px; }
+  .phrase-group-title { font-size: 0.78rem; color: #a0a0b0; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px; }
+  .phrase-chip {
+    display: inline-block; padding: 8px 13px; margin: 4px;
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 20px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; color: #fff;
+  }
+  .phrase-chip:hover { background: rgba(255,215,0,0.15); border-color: #ffd700; transform: translateY(-2px); }
+  .phrase-chip.selected { background: linear-gradient(135deg, #ff0080, #ff8c00); border-color: transparent; box-shadow: 0 4px 12px rgba(255,0,128,0.3); }
+  .my-answer-box { background: linear-gradient(135deg, rgba(255,215,0,0.1), rgba(255,0,128,0.1)); border: 2px solid rgba(255,215,0,0.3); border-radius: 16px; padding: 22px 18px; margin-top: 20px; }
+  .my-answer-box h3 { color: #ffd700; margin-bottom: 14px; display: flex; align-items: center; gap: 10px; font-size: 1.2rem; }
+  .answer-text { background: rgba(0,0,0,0.3); border-radius: 12px; padding: 18px; min-height: 110px; font-size: clamp(0.95rem, 4vw, 1.1rem); line-height: 1.7; color: #fff; white-space: pre-wrap; }
+  .answer-text .placeholder { color: #606070; font-style: italic; }
+  .answer-actions { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+  .answer-actions button { padding: 10px 18px; border-radius: 25px; border: none; font-weight: 700; cursor: pointer; transition: all 0.25s; font-size: 0.88rem; }
+  .btn-speak { background: linear-gradient(135deg, #00d4ff, #0080ff); color: #fff; }
+  .btn-speak:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,212,255,0.4); }
+  .btn-copy { background: linear-gradient(135deg, #00c853, #00e676); color: #fff; }
+  .btn-copy:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,200,83,0.4); }
+  .btn-reset-answer { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2) !important; }
+  .btn-reset-answer:hover { background: rgba(255,255,255,0.2); }
+  .general-phrases { background: rgba(0,212,255,0.08); border-left: 4px solid #00d4ff; padding: 14px 18px; border-radius: 8px; margin-bottom: 20px; }
+  .general-phrases h4 { color: #00d4ff; margin-bottom: 10px; }
+  .general-phrases ul { list-style: none; }
+  .general-phrases li { padding: 5px 0; font-size: 0.92rem; color: #e0e0e0; }
+  .general-phrases li::before { content: '🗣️ '; }
+
+  /* BUTTONS */
+  .btn {
+    background: linear-gradient(135deg, #ff0080, #ff8c00);
+    color: white; border: none; padding: 12px 26px; border-radius: 30px;
+    font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: all 0.3s; margin-top: 12px;
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(255,0,128,0.4); }
+  .btn.secondary { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); }
+
+  /* FINAL */
+  .final-screen {
+    text-align: center; padding: 35px 18px;
+    background: linear-gradient(135deg, rgba(255,0,128,0.1), rgba(0,212,255,0.1));
+    border-radius: 20px; margin: 25px auto; max-width: 700px; display: none;
+  }
+  .final-screen.show { display: block; animation: fadeIn 0.6s; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  .final-screen h2 {
+    font-size: clamp(1.8rem, 8vw, 2.5rem); margin-bottom: 15px;
+    background: linear-gradient(90deg, #ffd700, #ff0080);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .final-screen .big-emoji { font-size: clamp(3.5rem, 15vw, 5rem); margin: 18px 0; animation: bounce 1s infinite; }
+  .final-screen p { font-size: clamp(1rem, 4vw, 1.15rem); line-height: 1.6; color: #e0e0e0; margin-bottom: 10px; }
+  .confetti { position: fixed; width: 10px; height: 10px; pointer-events: none; z-index: 9999; }
+  .toast {
+    position: fixed; bottom: 25px; left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: linear-gradient(135deg, #00c853, #00e676);
+    color: #fff; padding: 13px 24px; border-radius: 30px;
+    font-weight: 700; box-shadow: 0 10px 30px rgba(0,200,83,0.4);
+    z-index: 9998; transition: transform 0.4s; max-width: 90vw; text-align: center; font-size: 0.9rem;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  footer { text-align: center; padding: 25px 15px; color: #606070; font-size: 0.85rem; line-height: 1.7; }
+  footer .teacher { color: #ffd700; font-weight: 700; }
+
+  /* MOBILE */
+  @media (max-width: 600px) {
+    section { margin: 25px auto; padding: 15px 12px; }
+    .hero { padding: 40px 12px 25px; }
+    .films-table { min-width: 540px; }
+    .emoji-card { height: 330px; }
+    .vocab-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .vocab-card { padding: 15px 8px; }
+    .vocab-card .emoji { font-size: 1.7rem; }
+    .vocab-card .word { font-size: 0.9rem; }
+    .film-cards { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
+    .film-card { padding: 12px 6px; }
+    .film-card .film-emoji { font-size: 1.5rem; }
+    .film-card .film-name { font-size: 0.72rem; }
+    .genres-grid { grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); gap: 8px; }
+    .genre-box { padding: 12px 6px; min-height: 85px; }
+    .genre-box .genre-name { font-size: 0.85rem; }
+    .answers-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; }
+    .answer-btn { padding: 11px 6px; font-size: 0.78rem; }
+    .choice-btn { padding: 7px 11px; font-size: 0.75rem; }
+    .phrase-chip { padding: 7px 11px; font-size: 0.8rem; }
+    .student-tab { padding: 8px 14px; font-size: 0.82rem; }
+    .sort-instructions, .useful-phrases, .general-phrases, .emoji-game-intro { font-size: 0.85rem; }
+    .btn { padding: 11px 20px; font-size: 0.9rem; }
+    .shuffle-btn { padding: 11px 22px; font-size: 0.92rem; }
+  }
+  @media (max-width: 380px) {
+    .vocab-grid { grid-template-columns: 1fr 1fr; }
+    .emoji-card { height: 300px; }
+    .emoji-display { letter-spacing: 2px; }
+    .student-label { font-size: 0.7rem; padding: 4px 9px; }
+    .secret-badge { font-size: 0.6rem; padding: 4px 8px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>🎬 CINEMA CLASS 🍿</h1>
+  <div class="subtitle">A Movie Lesson — Learn, Play, Speak!</div>
+  <div class="students">✨ Specially prepared for <b>Hava 🌸, Askhab 😎🦀, Amina 💇‍♀️</b> ✨</div>
+  <div class="film-strip">🎞️ 🎥 🎬 📽️ 🎞️ 🎥 🎬 📽️</div>
+</div>
+
+<!-- 1. WARM-UP -->
+<section>
+  <h2 class="section-title"><span class="num">1</span> Warm-up: Movie Lexicon</h2>
+  <p class="section-desc">Click on each word to see how to use it in a sentence. 🎯</p>
+  <div class="vocab-grid" id="vocabGrid"></div>
+</section>
+
+<!-- 2. GUESS THE FILM BY EMOJI -->
+<section>
+  <h2 class="section-title"><span class="num">2</span> 🎭 Guess the Film by Emoji!</h2>
+  <p class="section-desc">Each student has a secret film. Look at the emojis and guess which film it is!</p>
+  <div class="emoji-game-intro">
+    🎯 <strong>How to play:</strong> Each of you has a <b>secret film</b> with a set of emojis.
+    Show your emojis to the group (but don't reveal the name!). The others must guess which film you have.
+    Click on a card to reveal the answer.
+  </div>
+  <div class="emoji-cards" id="emojiCards"></div>
+  <button class="shuffle-btn" onclick="shuffleEmojiCards()">🔀 Shuffle cards</button>
+</section>
+
+<!-- 3. GENRE SORTING -->
+<section>
+  <h2 class="section-title"><span class="num">3</span> Genre Sorting — Movie Cards</h2>
+  <p class="section-desc">Put the films into the correct genre. Some films can go in more than one genre — be ready to explain why!</p>
+  <div class="sort-instructions">💡 <b>How to play:</b> Click a film card, then click a genre box to place it. Or drag & drop! Try to place all 11 films.</div>
+  <div class="sort-container">
+    <div class="films-panel">
+      <div class="panel-title">🎞️ Film Cards <span class="score-badge" id="sortScore">0 / 11</span></div>
+      <div class="film-cards" id="filmCards"></div>
+    </div>
+    <div class="genres-panel">
+      <div class="panel-title">🎭 Genres</div>
+      <div class="genres-grid" id="genresGrid"></div>
+    </div>
+  </div>
+  <div class="useful-phrases">
+    <strong>Useful Phrases:</strong>
+    <ul>
+      <li>I think it's a...</li>
+      <li>It's a comedy / horror film because...</li>
+      <li>It can be a... and a...</li>
+      <li>It's about...</li>
+    </ul>
+  </div>
+  <button class="btn secondary" onclick="resetSort()">🔄 Reset</button>
+  <button class="btn" onclick="showSortAnswers()">👀 Show Answers</button>
+</section>
+
+<!-- 4. GUESS THE FILM -->
+<section>
+  <h2 class="section-title"><span class="num">4</span> Guess the Film — Descriptions</h2>
+  <p class="section-desc">Read the description. Which film is it? 🕵️</p>
+  <div class="guess-container">
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="question-card" id="questionCard"></div>
+    <div class="answers-grid" id="answersGrid"></div>
+    <div class="feedback" id="feedback"></div>
+    <div style="text-align:center; margin-top:15px;">
+      <button class="btn secondary" id="nextBtn" onclick="nextQuestion()" style="display:none;">Next ➡️</button>
+    </div>
+  </div>
+</section>
+
+<!-- 5. WHICH FILM WOULD YOU LIKE TO BE IN? -->
+<section>
+  <h2 class="section-title"><span class="num">5</span> 🌟 Which film would you like to be in?</h2>
+  <p class="section-desc">Choose your favourite film from the list and explain why. Use the helpful phrases!</p>
+  <div class="which-film-container">
+    <div class="student-tabs" id="studentTabs">
+      <button class="student-tab active" data-student="Hava">👧 Hava 🌸</button>
+      <button class="student-tab" data-student="Askhab">👦 Askhab 😎🦀</button>
+      <button class="student-tab" data-student="Amina">👧 Amina 💇‍♀️</button>
+    </div>
+    <div class="general-phrases">
+      <h4>🗣️ Useful phrases to start your answer:</h4>
+      <ul>
+        <li>If I could be in any film, I would choose...</li>
+        <li>I would love to be in... because...</li>
+        <li>The film I'd like to be in is... It's a... film.</li>
+        <li>I think it would be amazing / exciting / scary / funny to be in this film because...</li>
+      </ul>
+    </div>
+    <div class="table-scroll">
+      <table class="films-table">
+        <thead>
+          <tr>
+            <th>Film</th>
+            <th>Genre</th>
+            <th>Would you like to be in it?</th>
+          </tr>
+        </thead>
+        <tbody id="filmsTableBody"></tbody>
+      </table>
+    </div>
+    <div class="my-answer-box">
+      <h3>🎤 My Answer</h3>
+      <div class="answer-text" id="answerText"><span class="placeholder">Click on phrases above to build your answer here...</span></div>
+      <div class="answer-actions">
+        <button class="btn-speak" onclick="speakAnswer()">🔊 Read aloud</button>
+        <button class="btn-copy" onclick="copyAnswer()">📋 Copy</button>
+        <button class="btn-reset-answer" onclick="resetAnswer()">🗑️ Reset</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL -->
+<div class="final-screen" id="finalScreen">
+  <div class="big-emoji">🏆</div>
+  <h2>Amazing Job!</h2>
+  <p><b>Hava 🌸, Askhab 😎🦀, Amina 💇‍♀️</b> — you are true cinema experts! 🎬✨</p>
+  <p id="finalScore"></p>
+  <p style="margin-top:20px; color:#ffd700;">🌟 Keep watching films in English — it's the best way to learn! 🌟</p>
+  <button class="btn" onclick="location.reload()">🔁 Play Again</button>
+</div>
+
+<div class="toast" id="toast">✅ Saved!</div>
+
+<footer>
+  🎬 Creative English Lesson · Made with ❤️ for Hava 🌸, Askhab 😎🦀, Amina 💇‍♀️ · 2026<br>
+  <span class="teacher">👩‍🏫 Compiled & prepared by Marem</span>
+</footer>
+
+<script>
+/* ============ WARM-UP VOCAB ============ */
+const vocab = [
+  { word: 'plot', emoji: '📖', hint: '"The plot was very exciting!"' },
+  { word: 'genre', emoji: '🎭', hint: '"What genre is this film?"' },
+  { word: 'main character', emoji: '🦸', hint: '"The main character is very brave."' },
+  { word: 'director', emoji: '🎬', hint: '"Who is the director of this film?"' },
+  { word: 'soundtrack', emoji: '🎵', hint: '"The soundtrack is beautiful."' },
+  { word: 'ending', emoji: '🎯', hint: '"I didn\'t like the ending."' },
+  { word: 'scary', emoji: '👻', hint: '"This horror film is very scary!"' },
+  { word: 'funny', emoji: '😂', hint: '"The comedy was really funny."' },
+  { word: 'romantic', emoji: '💕', hint: '"It\'s a romantic story."' },
+  { word: 'exciting', emoji: '🔥', hint: '"The action scenes are exciting."' },
+  { word: 'boring', emoji: '😴', hint: '"The film was boring."' },
+  { word: 'recommend', emoji: '⭐', hint: '"I recommend this film to you!"' }
+];
+const vocabGrid = document.getElementById('vocabGrid');
+vocab.forEach(v => {
+  const card = document.createElement('div');
+  card.className = 'vocab-card';
+  card.innerHTML = `<span class="emoji">${v.emoji}</span><div class="word">${v.word}</div><div class="hint">${v.hint}</div>`;
+  card.onclick = () => card.classList.toggle('active');
+  vocabGrid.appendChild(card);
+});
+
+/* ============ EMOJI GUESS GAME ============ */
+const emojiFilms = [
+  { student: 'Khava', studentClass: 'khava', film: 'Inside Out', genre: 'Animation · Comedy · Drama', emojis: ['😊','😢','😠','😨','🤢','🧠','💭'], bigEmoji: '🎭' },
+  { student: 'Askhab', studentClass: 'askhab', film: 'Jurassic Park', genre: 'Sci-Fi · Action · Adventure', emojis: ['🦖','🌴','🚙','⚡','🔬','🥚','🌋'], bigEmoji: '🦕' },
+  { student: 'Amina', studentClass: 'amina', film: "Five Nights at Freddy's", genre: 'Horror · Thriller', emojis: ['🐻','🍕','🌙','👁️','🔦','🎪','😱'], bigEmoji: '🐻' }
+];
+function renderEmojiCards() {
+  const container = document.getElementById('emojiCards');
+  container.innerHTML = '';
+  emojiFilms.forEach((ef, idx) => {
+    const card = document.createElement('div');
+    card.className = 'emoji-card';
+    card.dataset.idx = idx;
+    card.onclick = () => card.classList.toggle('flipped');
+    card.innerHTML = `
+      <div class="emoji-card-inner">
+        <div class="emoji-card-front">
+          <div class="student-label ${ef.studentClass}">🎬 ${ef.student}</div>
+          <div class="secret-badge">🔒 SECRET</div>
+          <div class="emoji-display">${ef.emojis.join(' ')}</div>
+          <div class="tap-hint"><span class="arrow">👆</span> Tap to reveal the film</div>
+        </div>
+        <div class="emoji-card-back">
+          <div class="revealed-emoji-big">${ef.bigEmoji}</div>
+          <div class="revealed-title">${ef.film}</div>
+          <div class="revealed-genre">${ef.genre}</div>
+        </div>
+      </div>`;
+    container.appendChild(card);
+  });
+}
+function shuffleEmojiCards() {
+  const container = document.getElementById('emojiCards');
+  const cards = Array.from(container.children);
+  for (let i = cards.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    container.appendChild(cards[j]);
+  }
+  cards.forEach(c => c.classList.remove('flipped'));
+  showToast('🔀 Cards shuffled!');
+}
+renderEmojiCards();
+
+/* ============ GENRE SORTING ============ */
+const films = [
+  { name: 'Barbie', emoji: '💖', main: 'comedy', also: ['fantasy', 'drama'] },
+  { name: 'WALL-E', emoji: '🤖', main: 'animation', also: ['sci-fi'] },
+  { name: 'The Hunger Games', emoji: '🏹', main: 'sci-fi', also: ['action', 'drama'] },
+  { name: 'Wreck-It Ralph', emoji: '🎮', main: 'animation', also: ['comedy', 'action'] },
+  { name: 'Jurassic Park', emoji: '🦖', main: 'sci-fi', also: ['action'] },
+  { name: 'The Devil Wears Prada', emoji: '👠', main: 'comedy', also: ['drama'] },
+  { name: 'Interstellar', emoji: '🚀', main: 'sci-fi', also: ['drama'] },
+  { name: "Five Nights at Freddy's", emoji: '🐻', main: 'horror', also: [] },
+  { name: 'Little Longnose', emoji: '👃', main: 'fantasy', also: ['animation'] },
+  { name: 'Train to Busan', emoji: '🚆', main: 'horror', also: ['action'] },
+  { name: 'Insidious', emoji: '😈', main: 'horror', also: [] }
+];
+const genres = ['comedy', 'horror', 'fantasy', 'sci-fi', 'action', 'animation', 'drama'];
+const genreEmojis = { comedy: '😂', horror: '👻', fantasy: '🧙', 'sci-fi': '🚀', action: '💥', animation: '🎨', drama: '🎭' };
+let selectedFilm = null, placedFilms = {}, sortScore = 0;
+const filmCardsEl = document.getElementById('filmCards');
+const genresGridEl = document.getElementById('genresGrid');
+films.forEach(f => {
+  const card = document.createElement('div');
+  card.className = 'film-card';
+  card.draggable = true;
+  card.dataset.name = f.name;
+  card.innerHTML = `<span class="film-emoji">${f.emoji}</span><div class="film-name">${f.name}</div>`;
+  card.onclick = () => {
+    if (card.classList.contains('placed')) return;
+    document.querySelectorAll('.film-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    selectedFilm = f.name;
+  };
+  card.ondragstart = e => { selectedFilm = f.name; e.dataTransfer.setData('text', f.name); };
+  filmCardsEl.appendChild(card);
+});
+genres.forEach(g => {
+  const box = document.createElement('div');
+  box.className = 'genre-box';
+  box.dataset.genre = g;
+  box.innerHTML = `<div class="genre-name">${genreEmojis[g]} ${g}</div><div class="genre-count">0 films</div><div class="placed-list"></div>`;
+  box.onclick = () => { if (selectedFilm) placeFilm(selectedFilm, g); };
+  box.ondragover = e => { e.preventDefault(); box.classList.add('drag-over'); };
+  box.ondragleave = () => box.classList.remove('drag-over');
+  box.ondrop = e => { e.preventDefault(); box.classList.remove('drag-over'); const name = e.dataTransfer.getData('text'); if (name) placeFilm(name, g); };
+  genresGridEl.appendChild(box);
+});
+function placeFilm(filmName, genre) {
+  if (!filmName) return;
+  const film = films.find(f => f.name === filmName);
+  if (!film) return;
+  if (!placedFilms[filmName]) placedFilms[filmName] = [];
+  if (placedFilms[filmName].includes(genre)) return;
+  placedFilms[filmName].push(genre);
+  const card = document.querySelector(`.film-card[data-name="${filmName}"]`);
+  card.classList.remove('selected');
+  if (film.main === genre && !card.classList.contains('placed')) {
+    card.classList.add('placed');
+    sortScore++;
+    document.getElementById('sortScore').textContent = `${sortScore} / 11`;
+  }
+  const box = document.querySelector(`.genre-box[data-genre="${genre}"]`);
+  const list = box.querySelector('.placed-list');
+  const item = document.createElement('div');
+  item.textContent = `${film.emoji} ${filmName}${film.main === genre ? ' ✓' : ''}`;
+  if (film.main !== genre && !film.also.includes(genre)) item.style.color = '#ff8a80';
+  list.appendChild(item);
+  box.querySelector('.genre-count').textContent = `${list.children.length} film${list.children.length !== 1 ? 's' : ''}`;
+  selectedFilm = null;
+  if (sortScore === 11) { setTimeout(() => { alert('🎉 Perfect! All films placed correctly!'); launchConfetti(); }, 300); }
+}
+function resetSort() {
+  placedFilms = {}; sortScore = 0;
+  document.getElementById('sortScore').textContent = '0 / 11';
+  document.querySelectorAll('.film-card').forEach(c => c.classList.remove('placed', 'selected'));
+  document.querySelectorAll('.genre-box').forEach(b => { b.querySelector('.placed-list').innerHTML = ''; b.querySelector('.genre-count').textContent = '0 films'; });
+}
+function showSortAnswers() {
+  let msg = '📋 ANSWER KEY:\n\n';
+  films.forEach(f => {
+    msg += `${f.emoji} ${f.name}\n   Main: ${f.main}`;
+    if (f.also.length) msg += `\n   Also: ${f.also.join(', ')}`;
+    msg += '\n\n';
+  });
+  alert(msg);
+}
+
+/* ============ GUESS THE FILM ============ */
+const questions = [
+  { q: "It is about a robot. He lives on a dirty, empty planet. He meets a girl robot. It is an animation film. It is funny and sad.", a: "WALL-E" },
+  { q: "It is about a girl. She lives in a beautiful world, but then she goes to the real world. She is very funny. It is a comedy.", a: "Barbie" },
+  { q: "It is about a boy. He has a scary job. He works at night in a pizza place. The animals there are not friendly. It is a horror film.", a: "Five Nights at Freddy's" },
+  { q: "It is about a man. He works in a big company. His new boss is a young woman. It is a comedy, and it is also a drama.", a: "The Devil Wears Prada" },
+  { q: "It is about a boy who loves video games. He is a bad guy in a game, but he wants to be a hero. It is an animation film.", a: "Wreck-It Ralph" },
+  { q: "It is about a boy. A wizard gives him magic powers. But magic can be dangerous. It is a fantasy film.", a: "Little Longnose" },
+  { q: "It is about a group of people. They visit a special park. The animals there are very big and very dangerous. It is a sci-fi film.", a: "Jurassic Park" },
+  { q: "It is about a girl and a boy. They live in a country with a cruel government. Every year, teenagers must fight in a TV show. It is a sci-fi film.", a: "The Hunger Games" },
+  { q: "It is about a family. They move into a new house. Strange and scary things happen there. It is a horror film.", a: "Insidious" },
+  { q: "It is about people on a train. A dangerous virus comes to the train. The people must run and fight. It is a horror film.", a: "Train to Busan" },
+  { q: "It is about a father. He is a scientist. He travels in space to save the Earth. It is a sci-fi film. It is exciting and a little sad.", a: "Interstellar" }
+];
+let currentQ = 0, guessScore = 0;
+const allFilmNames = films.map(f => f.name);
+function renderQuestion() {
+  const q = questions[currentQ];
+  document.getElementById('questionCard').innerHTML = `<div><span class="q-number">Question ${currentQ + 1} of ${questions.length}</span>${q.q}</div>`;
+  document.getElementById('progressFill').style.width = `${(currentQ / questions.length) * 100}%`;
+  document.getElementById('feedback').className = 'feedback';
+  document.getElementById('feedback').textContent = '';
+  document.getElementById('nextBtn').style.display = 'none';
+  const grid = document.getElementById('answersGrid');
+  grid.innerHTML = '';
+  const shuffled = [...allFilmNames].sort(() => Math.random() - 0.5);
+  shuffled.forEach(name => {
+    const btn = document.createElement('button');
+    btn.className = 'answer-btn';
+    btn.textContent = name;
+    btn.onclick = () => checkAnswer(btn, name, q.a);
+    grid.appendChild(btn);
+  });
+}
+function checkAnswer(btn, chosen, correct) {
+  const allBtns = document.querySelectorAll('.answer-btn');
+  allBtns.forEach(b => b.onclick = null);
+  const fb = document.getElementById('feedback');
+  if (chosen === correct) {
+    btn.classList.add('correct');
+    fb.textContent = `✅ Correct! It's "${correct}"!`;
+    fb.className = 'feedback show good';
+    guessScore++;
+  } else {
+    btn.classList.add('wrong');
+    allBtns.forEach(b => { if (b.textContent === correct) b.classList.add('correct'); });
+    fb.textContent = `❌ Not quite. The answer is "${correct}".`;
+    fb.className = 'feedback show bad';
+  }
+  document.getElementById('nextBtn').style.display = 'inline-block';
+}
+function nextQuestion() {
+  currentQ++;
+  if (currentQ >= questions.length) showFinal();
+  else renderQuestion();
+}
+function showFinal() {
+  document.getElementById('progressFill').style.width = '100%';
+  document.querySelector('.guess-container').style.display = 'none';
+  const final = document.getElementById('finalScreen');
+  final.classList.add('show');
+  document.getElementById('finalScore').innerHTML = `You got <b style="color:#ffd700; font-size:1.5rem;">${guessScore} / ${questions.length}</b> correct! 🌟`;
+  launchConfetti();
+  final.scrollIntoView({ behavior: 'smooth' });
+}
+
+/* ============ WHICH FILM WOULD YOU LIKE TO BE IN? ============ */
+let currentStudent = 'Hava';
+const studentChoices = {};
+const studentPhrases = {};
+['Hava', 'Askhab', 'Amina'].forEach(s => { studentChoices[s] = {}; studentPhrases[s] = []; });
+document.querySelectorAll('.student-tab').forEach(tab => {
+  tab.onclick = () => {
+    document.querySelectorAll('.student-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    currentStudent = tab.dataset.student;
+    renderFilmsTable();
+    renderAnswer();
+  };
+});
+const phraseGroups = [
+  { title: '🎯 Starting your answer', phrases: ['If I could be in any film, I would choose {film}.', 'I would love to be in {film} because it\'s amazing.', 'The film I\'d like to be in is {film}.', 'I think {film} is the best film for me.'] },
+  { title: '🎭 About the genre & story', phrases: ['It\'s a {genre} film, and I love this genre.', 'The plot is very exciting and interesting.', 'The story is about amazing adventures.', 'I think the story is very creative.'] },
+  { title: '🦸 About the characters', phrases: ['I could be the main character who is brave and smart.', 'I would like to meet the main characters.', 'The characters are very funny and kind.', 'I think I would be a good hero in this film.'] },
+  { title: '✨ About feelings & atmosphere', phrases: ['It would be exciting to live in this world.', 'I think it would be scary but fun!', 'The film looks very beautiful and magical.', 'I would feel happy and excited there.', 'The soundtrack is wonderful — I love music!'] },
+  { title: '🌍 About the world of the film', phrases: ['I would love to visit this world.', 'I could explore amazing places there.', 'I would like to travel in space / to a magical land.', 'It would be an unforgettable adventure.'] },
+  { title: '⭐ Finishing your answer', phrases: ['That\'s why I would choose this film.', 'I recommend this film to everyone!', 'I think everyone should watch this film.', 'It\'s my dream to be in this film!'] }
+];
+function renderFilmsTable() {
+  const tbody = document.getElementById('filmsTableBody');
+  tbody.innerHTML = '';
+  films.forEach(f => {
+    const tr = document.createElement('tr');
+    const choice = studentChoices[currentStudent][f.name] || null;
+    tr.innerHTML = `
+      <td><div class="film-row-name"><span class="emoji">${f.emoji}</span><span>${f.name}</span></div></td>
+      <td><span class="film-row-genre">${f.main}</span></td>
+      <td>
+        <div class="choice-btns">
+          <button class="choice-btn yes ${choice === 'yes' ? 'active' : ''}" data-film="${f.name}" data-choice="yes">✅ Yes</button>
+          <button class="choice-btn no ${choice === 'no' ? 'active' : ''}" data-film="${f.name}" data-choice="no">❌ No</button>
+          <button class="choice-btn maybe ${choice === 'maybe' ? 'active' : ''}" data-film="${f.name}" data-choice="maybe">🤔 Maybe</button>
+        </div>
+        <div class="phrases-panel ${choice === 'yes' ? 'show' : ''}" id="phrases-${f.name.replace(/[^a-zA-Z0-9]/g, '')}"></div>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+  document.querySelectorAll('.choice-btn').forEach(btn => {
+    btn.onclick = () => {
+      const filmName = btn.dataset.film;
+      const choice = btn.dataset.choice;
+      studentChoices[currentStudent][filmName] = choice;
+      const row = btn.closest('tr');
+      row.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const panel = row.querySelector('.phrases-panel');
+      if (choice === 'yes') { renderPhrasesPanel(panel, filmName); panel.classList.add('show'); }
+      else panel.classList.remove('show');
+    };
+  });
+}
+function renderPhrasesPanel(panel, filmName) {
+  const film = films.find(f => f.name === filmName);
+  panel.innerHTML = `<h4>💡 Helpful phrases for "${film.name}" — click to add to your answer:</h4>`;
+  phraseGroups.forEach(group => {
+    const div = document.createElement('div');
+    div.className = 'phrase-group';
+    div.innerHTML = `<div class="phrase-group-title">${group.title}</div>`;
+    group.phrases.forEach(phrase => {
+      const filled = phrase.replace(/{film}/g, film.name).replace(/{genre}/g, film.main);
+      const chip = document.createElement('span');
+      chip.className = 'phrase-chip';
+      chip.textContent = filled;
+      if (studentPhrases[currentStudent].includes(filled)) chip.classList.add('selected');
+      chip.onclick = () => togglePhrase(chip, filled);
+      div.appendChild(chip);
+    });
+    panel.appendChild(div);
+  });
+}
+function togglePhrase(chip, phrase) {
+  const idx = studentPhrases[currentStudent].indexOf(phrase);
+  if (idx > -1) { studentPhrases[currentStudent].splice(idx, 1); chip.classList.remove('selected'); }
+  else { studentPhrases[currentStudent].push(phrase); chip.classList.add('selected'); }
+  renderAnswer();
+}
+function renderAnswer() {
+  const box = document.getElementById('answerText');
+  const phrases = studentPhrases[currentStudent];
+  if (phrases.length === 0) { box.innerHTML = '<span class="placeholder">Click on phrases above to build your answer here...</span>'; return; }
+  box.textContent = phrases.join('\n');
+}
+function speakAnswer() {
+  const text = document.getElementById('answerText').textContent;
+  if (!text || text.includes('Click on phrases')) { showToast('⚠️ First choose some phrases!'); return; }
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = 'en-US'; utter.rate = 0.9; utter.pitch = 1;
+    window.speechSynthesis.speak(utter);
+    showToast('🔊 Reading aloud...');
+  } else showToast('⚠️ Speech not supported');
+}
+function copyAnswer() {
+  const text = document.getElementById('answerText').textContent;
+  if (!text || text.includes('Click on phrases')) { showToast('⚠️ Nothing to copy!'); return; }
+  navigator.clipboard.writeText(text).then(() => showToast('📋 Copied!')).catch(() => showToast('⚠️ Copy failed'));
+}
+function resetAnswer() {
+  studentPhrases[currentStudent] = [];
+  renderAnswer();
+  document.querySelectorAll('.phrase-chip.selected').forEach(c => c.classList.remove('selected'));
+  showToast('🗑️ Answer reset');
+}
+
+/* ============ CONFETTI ============ */
+function launchConfetti() {
+  const colors = ['#ff0080', '#ffd700', '#00d4ff', '#00c853', '#ff8c00', '#9b59b6', '#e74c3c'];
+  for (let i = 0; i < 80; i++) {
+    const c = document.createElement('div');
+    c.className = 'confetti';
+    c.style.background = colors[Math.floor(Math.random() * colors.length)];
+    c.style.left = Math.random() * 100 + 'vw';
+    c.style.top = '-20px';
+    c.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+    document.body.appendChild(c);
+    const duration = 2 + Math.random() * 2;
+    c.animate([
+      { transform: 'translateY(0) rotate(0deg)', opacity: 1 },
+      { transform: `translateY(100vh) rotate(${Math.random() * 720}deg)`, opacity: 0 }
+    ], { duration: duration * 1000, easing: 'ease-in' });
+    setTimeout(() => c.remove(), duration * 1000);
+  }
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// Init
+renderQuestion();
+renderFilmsTable();
+</script>
+
+</body>
+</html>

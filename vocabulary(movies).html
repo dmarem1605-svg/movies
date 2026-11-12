@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vocabulary Trainer</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: #0f0f1a;
+            color: #fff;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.2em;
+            font-weight: 900;
+            background: linear-gradient(135deg, #667eea, #f093fb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p { color: #666; margin-top: 5px; }
+
+        /* Mode Tabs */
+        .mode-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .mode-tab {
+            flex: 1;
+            padding: 14px;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 14px;
+            background: rgba(255,255,255,0.03);
+            color: #888;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 700;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .mode-tab:hover { border-color: rgba(255,255,255,0.2); color: #ccc; }
+
+        .mode-tab.active {
+            border-color: #764ba2;
+            background: rgba(118, 75, 162, 0.15);
+            color: #fff;
+        }
+
+        /* Stats */
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 12px;
+            font-size: 0.9em;
+        }
+
+        .stats span { color: #888; }
+        .stats strong { color: #f093fb; }
+
+        /* Progress */
+        .progress-bar-bg {
+            width: 100%;
+            height: 6px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 10px;
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #f093fb);
+            border-radius: 10px;
+            transition: width 0.4s;
+            width: 0%;
+        }
+
+        /* Flashcards */
+        .flashcard {
+            width: 100%;
+            height: 280px;
+            perspective: 1000px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .flashcard-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.5s;
+            transform-style: preserve-3d;
+        }
+
+        .flashcard.flipped .flashcard-inner { transform: rotateY(180deg); }
+
+        .flashcard-front, .flashcard-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .flashcard-front {
+            background: linear-gradient(145deg, #1a1a2e, #16213e);
+            border: 2px solid rgba(102, 126, 234, 0.3);
+        }
+
+        .flashcard-back {
+            background: linear-gradient(145deg, #16213e, #1a1a2e);
+            border: 2px solid rgba(240, 147, 251, 0.3);
+            transform: rotateY(180deg);
+        }
+
+        .fc-word { font-size: 1.8em; font-weight: 800; margin-bottom: 12px; }
+        .fc-hint { color: #555; font-size: 0.85em; }
+        .fc-translation { font-size: 1.6em; font-weight: 700; color: #f093fb; margin-bottom: 10px; }
+        .fc-example { font-size: 0.9em; color: #777; font-style: italic; }
+
+        .fc-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.7em;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .badge-inside-out { background: rgba(79,195,247,0.15); color: #4fc3f7; }
+        .badge-jurassic { background: rgba(102,187,106,0.15); color: #66bb6a; }
+        .badge-fnaf { background: rgba(239,83,80,0.15); color: #ef5350; }
+
+        .fc-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .fc-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 700;
+            font-size: 0.95em;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #fff;
+        }
+
+        .fc-btn:hover { transform: translateY(-2px); }
+        .fc-btn.no { background: rgba(245,87,108,0.2); color: #f5576c; }
+        .fc-btn.yes { background: rgba(67,233,123,0.2); color: #43e97b; }
+
+        .fc-counter { text-align: center; color: #555; font-size: 0.85em; margin-bottom: 15px; }
+
+        /* Typing */
+        .typing-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 20px;
+            padding: 35px 25px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .typing-word { font-size: 1.8em; font-weight: 800; margin-bottom: 20px; }
+
+        .typing-input {
+            width: 100%;
+            padding: 14px 20px;
+            background: rgba(255,255,255,0.06);
+            border: 2px solid rgba(255,255,255,0.12);
+            border-radius: 14px;
+            color: #fff;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.15em;
+            font-weight: 600;
+            text-align: center;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .typing-input:focus { border-color: #764ba2; }
+        .typing-input.correct { border-color: #43e97b; background: rgba(67,233,123,0.08); }
+        .typing-input.wrong { border-color: #f5576c; background: rgba(245,87,108,0.08); }
+
+        .typing-hint-text { color: #555; margin-top: 10px; font-size: 0.85em; }
+        .typing-hint-text span { color: #f093fb; font-weight: 700; }
+
+        .typing-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .t-btn {
+            padding: 12px 22px;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 700;
+            font-size: 0.95em;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .t-btn:hover { transform: translateY(-2px); }
+        .t-btn.check { background: linear-gradient(135deg, #43e97b, #38f9d7); color: #000; }
+        .t-btn.hint { background: rgba(240,147,251,0.2); color: #f093fb; }
+        .t-btn.skip { background: rgba(255,255,255,0.08); color: #888; }
+
+        .typing-score { text-align: center; color: #555; font-size: 0.85em; margin-top: 15px; }
+
+        /* Result */
+        .result {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .result-emoji { font-size: 3em; margin-bottom: 10px; }
+        .result-score {
+            font-size: 3.5em;
+            font-weight: 900;
+            background: linear-gradient(135deg, #667eea, #f093fb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .result-text { color: #888; font-size: 1.1em; margin: 10px 0 25px; }
+
+        .result-btn {
+            padding: 14px 36px;
+            border: none;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 700;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .result-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(118,75,162,0.4); }
+
+        .hidden { display: none !important; }
+
+        @keyframes shake {
+            0%,100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+
+        .shake { animation: shake 0.4s; }
+
+        @keyframes pop {
+            0%,100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+
+        .pop { animation: pop 0.3s; }
+
+        /* Confetti */
+        .confetti {
+            position: fixed;
+            width: 8px;
+            height: 8px;
+            top: -10px;
+            z-index: 999;
+            animation: fall 2.5s linear forwards;
+        }
+
+        @keyframes fall {
+            0% { top: -10px; opacity: 1; transform: rotate(0deg) translateX(0); }
+            100% { top: 110vh; opacity: 0; transform: rotate(720deg) translateX(80px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎬 Vocabulary Trainer</h1>
+            <p>28 слов из 3 фильмов</p>
+        </div>
+
+        <div class="mode-tabs">
+            <button class="mode-tab active" id="tab-cards" onclick="switchMode('cards')">🃏 Карточки</button>
+            <button class="mode-tab" id="tab-typing" onclick="switchMode('typing')">⌨️ Ввод</button>
+        </div>
+
+        <div class="stats">
+            <span>Выучено: <strong id="stat-learned">0</strong> / <strong id="stat-total">28</strong></span>
+            <span>Серия: <strong id="stat-streak">0</strong> 🔥</span>
+        </div>
+
+        <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="progress-fill"></div>
+        </div>
+
+        <!-- CARDS MODE -->
+        <div id="mode-cards">
+            <div class="fc-counter" id="fc-counter"></div>
+            <div class="flashcard" id="flashcard" onclick="flipCard()">
+                <div class="flashcard-inner" id="fc-inner">
+                    <div class="flashcard-front">
+                        <span class="fc-badge" id="fc-badge"></span>
+                        <div class="fc-word" id="fc-word"></div>
+                        <div class="fc-hint">Нажми для перевода</div>
+                    </div>
+                    <div class="flashcard-back">
+                        <div class="fc-translation" id="fc-translation"></div>
+                        <div class="fc-example" id="fc-example"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="fc-controls">
+                <button class="fc-btn no" onclick="markCard(false)">❌ Не знаю</button>
+                <button class="fc-btn yes" onclick="markCard(true)">✅ Знаю</button>
+            </div>
+        </div>
+
+        <!-- TYPING MODE -->
+        <div id="mode-typing" class="hidden">
+            <div id="typing-area"></div>
+        </div>
+    </div>
+
+    <script>
+        const words = [
+            { word: "I'd be delighted", translation: "я был бы очень рад", movie: "inside-out", example: "I'd be delighted to help you!" },
+            { word: "I'd be offended", translation: "я бы обиделся", movie: "inside-out", example: "I'd be offended if you didn't come." },
+            { word: "I'd be glad", translation: "я был бы рад", movie: "inside-out", example: "I'd be glad to see you again." },
+            { word: "Stage", translation: "этап", movie: "inside-out", example: "This is an important stage of life." },
+            { word: "stage of growing up", translation: "этап взросления", movie: "inside-out", example: "Childhood is a stage of growing up." },
+            { word: "grow up", translation: "расти, взрослеть", movie: "inside-out", example: "Children grow up so fast!" },
+            { word: "to cope with", translation: "справляться (с эмоциями)", movie: "inside-out", example: "It's hard to cope with strong emotions." },
+            { word: "anger", translation: "злость", movie: "inside-out", example: "He couldn't control his anger." },
+            { word: "disgust", translation: "отвращение", movie: "inside-out", example: "She showed disgust at the smell." },
+            { word: "anxiety", translation: "тревожность", movie: "inside-out", example: "Anxiety can affect your health." },
+            { word: "I'm excited", translation: "я взволнован / в предвкушении", movie: "inside-out", example: "I'm excited about the trip!" },
+            { word: "Indifference", translation: "равнодушие / безразличие", movie: "inside-out", example: "His indifference hurt her feelings." },
+            { word: "nephew", translation: "племянник", movie: "jurassic", example: "My nephew loves dinosaurs!" },
+            { word: "tame", translation: "приручить", movie: "jurassic", example: "They tried to tame the raptors." },
+            { word: "make smb do smth", translation: "заставить кого-то делать что-то", movie: "jurassic", example: "My mum made me do my homework." },
+            { word: "DNA", translation: "ДНК", movie: "jurassic", example: "They found dinosaur DNA in amber." },
+            { word: "follow", translation: "следовать", movie: "jurassic", example: "Follow the path through the jungle." },
+            { word: "to track", translation: "отслеживать", movie: "jurassic", example: "We need to track the dinosaur." },
+            { word: "to track your parcel", translation: "отслеживать посылку", movie: "jurassic", example: "You can track your parcel online." },
+            { word: "security guard", translation: "охранник", movie: "fnaf", example: "The security guard works at night." },
+            { word: "plot twist", translation: "неожиданный поворот сюжета", movie: "fnaf", example: "The movie had an amazing plot twist!" },
+            { word: "carry", translation: "носить", movie: "fnaf", example: "He had to carry the heavy box." },
+            { word: "soul", translation: "душа", movie: "fnaf", example: "The souls of the children were trapped." },
+            { word: "important", translation: "важный", movie: "fnaf", example: "This is a very important clue." },
+            { word: "to discover", translation: "разузнать / открыть", movie: "fnaf", example: "She managed to discover the truth." },
+            { word: "trust", translation: "доверие / доверять", movie: "fnaf", example: "You can't trust the animatronics." },
+            { word: "revenge", translation: "месть", movie: "fnaf", example: "He wanted revenge for what happened." },
+            { word: "to take revenge", translation: "отомстить", movie: "fnaf", example: "She decided to take revenge." },
+        ];
+
+        const badgeNames = {
+            'inside-out': '🧠 Inside Out',
+            'jurassic': '🦕 Jurassic Park',
+            'fnaf': '🐻 FNAF'
+        };
+
+        let learned = new Set();
+        let streak = 0;
+        let currentMode = 'cards';
+
+        // Cards state
+        let cardOrder = shuffle([...words]);
+        let cardIndex = 0;
+        let cardFlipped = false;
+
+        // Typing state
+        let typeOrder = [];
+        let typeIndex = 0;
+        let typeScore = 0;
+        let typeTotal = 0;
+
+        function shuffle(arr) {
+            const a = [...arr];
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+
+        function updateStats() {
+            document.getElementById('stat-learned').textContent = learned.size;
+            document.getElementById('stat-streak').textContent = streak;
+            document.getElementById('progress-fill').style.width = (learned.size / words.length * 100) + '%';
+        }
+
+        function switchMode(mode) {
+            currentMode = mode;
+            document.getElementById('tab-cards').classList.toggle('active', mode === 'cards');
+            document.getElementById('tab-typing').classList.toggle('active', mode === 'typing');
+            document.getElementById('mode-cards').classList.toggle('hidden', mode !== 'cards');
+            document.getElementById('mode-typing').classList.toggle('hidden', mode !== 'typing');
+
+            if (mode === 'cards') { cardIndex = 0; cardFlipped = false; showCard(); }
+            if (mode === 'typing') startTyping();
+        }
+
+        // ===== CARDS =====
+        function showCard() {
+            const w = cardOrder[cardIndex];
+            document.getElementById('fc-word').textContent = w.word;
+            document.getElementById('fc-translation').textContent = w.translation;
+            document.getElementById('fc-example').textContent = w.example || '';
+
+            const badge = document.getElementById('fc-badge');
+            badge.textContent = badgeNames[w.movie];
+            badge.className = 'fc-badge badge-' + w.movie;
+
+            document.getElementById('fc-counter').textContent = `${cardIndex + 1} / ${cardOrder.length}`;
+
+            cardFlipped = false;
+            document.getElementById('flashcard').classList.remove('flipped');
+        }
+
+        function flipCard() {
+            cardFlipped = !cardFlipped;
+            document.getElementById('flashcard').classList.toggle('flipped');
+        }
+
+        function markCard(known) {
+            const w = cardOrder[cardIndex];
+            if (known) { learned.add(w.word); streak++; } else { streak = 0; }
+            updateStats();
+
+            cardIndex++;
+            if (cardIndex >= cardOrder.length) {
+                cardOrder = shuffle([...words]);
+                cardIndex = 0;
+            }
+            showCard();
+        }
+
+        // ===== TYPING =====
+        function startTyping() {
+            typeOrder = shuffle([...words]);
+            typeIndex = 0;
+            typeScore = 0;
+            typeTotal = 0;
+            showTypeQuestion();
+        }
+
+        function showTypeQuestion() {
+            if (typeIndex >= typeOrder.length) { showTypeResult(); return; }
+
+            const w = typeOrder[typeIndex];
+            typeTotal++;
+
+            document.getElementById('typing-area').innerHTML = `
+                <div class="typing-card">
+                    <span class="fc-badge badge-${w.movie}">${badgeNames[w.movie]}</span>
+                    <div class="typing-word">${w.translation}</div>
+                    <input type="text" class="typing-input" id="type-input" placeholder="Введи на английском..." autocomplete="off" onkeydown="if(event.key==='Enter')checkType()">
+                    <div class="typing-hint-text">Начинается на <span>"${w.word.charAt(0)}"</span> · ${w.word.length} букв</div>
+                </div>
+                <div class="typing-controls">
+                    <button class="t-btn hint" onclick="typeHint()">💡 Буква</button>
+                    <button class="t-btn check" onclick="checkType()">Проверить</button>
+                    <button class="t-btn skip" onclick="typeSkip()">Пропустить</button>
+                </div>
+                <div class="typing-score">${typeIndex + 1} / ${typeOrder.length} · Верно: ${typeScore}</div>
+            `;
+
+            setTimeout(() => document.getElementById('type-input').focus(), 50);
+        }
+
+        function checkType() {
+            const input = document.getElementById('type-input');
+            if (!input) return;
+            const w = typeOrder[typeIndex];
+            const val = input.value.trim().toLowerCase();
+            if (!val) return;
+
+            if (val === w.word.toLowerCase()) {
+                input.classList.add('correct', 'pop');
+                typeScore++;
+                streak++;
+                learned.add(w.word);
+            } else {
+                input.classList.add('wrong', 'shake');
+                input.value = w.word;
+                streak = 0;
+            }
+
+            updateStats();
+            setTimeout(() => { typeIndex++; showTypeQuestion(); }, 1200);
+        }
+
+        function typeHint() {
+            const input = document.getElementById('type-input');
+            if (!input) return;
+            const w = typeOrder[typeIndex];
+            if (input.value.length < w.word.length) {
+                input.value = w.word.substring(0, input.value.length + 1);
+            }
+            input.focus();
+        }
+
+        function typeSkip() {
+            streak = 0;
+            updateStats();
+            typeIndex++;
+            showTypeQuestion();
+        }
+
+        function showTypeResult() {
+            const pct = Math.round(typeScore / typeOrder.length * 100);
+            const emoji = pct >= 80 ? '🎉' : pct >= 50 ? '👍' : '💪';
+            const msg = pct >= 80 ? 'Отлично!' : pct >= 50 ? 'Хорошо!' : 'Практикуйся ещё!';
+
+            document.getElementById('typing-area').innerHTML = `
+                <div class="result">
+                    <div class="result-emoji">${emoji}</div>
+                    <div class="result-score">${typeScore}/${typeOrder.length}</div>
+                    <div class="result-text">${msg} · ${pct}%</div>
+                    <button class="result-btn" onclick="startTyping()">🔄 Ещё раз</button>
+                </div>
+            `;
+
+            if (pct >= 80) confetti();
+        }
+
+        function confetti() {
+            const colors = ['#667eea','#764ba2','#f093fb','#f5576c','#43e97b','#4fc3f7','#ffd700'];
+            for (let i = 0; i < 40; i++) {
+                const el = document.createElement('div');
+                el.className = 'confetti';
+                el.style.left = Math.random() * 100 + 'vw';
+                el.style.background = colors[Math.floor(Math.random() * colors.length)];
+                el.style.animationDelay = Math.random() * 1.5 + 's';
+                el.style.width = el.style.height = (5 + Math.random() * 8) + 'px';
+                el.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+                document.body.appendChild(el);
+                setTimeout(() => el.remove(), 4000);
+            }
+        }
+
+        // Keyboard
+        document.addEventListener('keydown', e => {
+            if (currentMode === 'cards') {
+                if (e.key === ' ') { e.preventDefault(); flipCard(); }
+            }
+        });
+
+        // Init
+        updateStats();
+        showCard();
+    </script>
+</body>
+</html>
